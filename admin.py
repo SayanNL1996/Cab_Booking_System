@@ -1,6 +1,7 @@
 """ File for all operations performed under Admin."""
 
 import re
+from validation import Validation
 
 
 class Admin:
@@ -72,53 +73,22 @@ class Admin:
         Fetch employee details from user.
         :return: True/False
         """
-        print("\nAdd Employee\n------------")
-        fname = input("First Name: ")
-        lname = input("Last Name: ")
-        email = input("Email: ").lower()
-        phone = input("Phone no.: ")
-
-        if re.search(self.regex, email):
-            if self.add_employee_action(fname, lname, email, phone):
-                return True
-        else:
-            print("\nInvalid email.")
-        return False
-
-    def add_employee_action(self, fname, lname, email, phone):
-        """
-        Add employee with the given data.
-        :param fname: first name of member
-        :param lname: last name of member
-        :param email: email of member
-        :param phone: phone no. of member
-        :return: True/False
-        """
         try:
+            print("\nAdd Employee\n------------")
+            fname = Validation.input_str_for_create(self, "First name: ")
+            lname = Validation.input_str_for_create(self, "Last name: ")
+            email = input("Enter Email: ").lower()
+            phone = Validation.validate_phn_no("Phone no.: ")
+
             c = self.conn.cursor()
             c.execute("SELECT count(*) from employees WHERE lower(email)='{}'".format(email))
-            if c.fetchone()[0] < 1:
-                if re.search("^[a-zA-Z]+$", fname):
-                    if re.search("^[a-zA-Z]+$", lname):
-                        if len(phone) == 10:
-                            c.execute("INSERT INTO employees (FNAME,LNAME,EMAIL,PHONE) VALUES('{}','{}','{}','{}')"
-                                      .format(fname, lname, email, phone))
-                            c.execute("INSERT INTO users VALUES('{}','{}',{})"
-                                      .format(email, fname.lower() + '@' + str(123), 22))
-                            self.conn.commit()
-                            print("\n'{}' added as Employee".format(fname))
-                            return True
-                        else:
-                            print("\nInvalid Phone No.")
-                    else:
-                        print("\n Only letters are allowed in last name.")
-                else:
-                    print("\n Only letters are allowed in first name.")
-            else:
-                print("\n'{}' already exists.\nTry again with new Email".format(email))
+            c.execute("INSERT INTO employees (FNAME,LNAME,EMAIL,PHONE) VALUES('{}','{}','{}','{}')"
+                      .format(fname, lname, email, phone))
+            c.execute("INSERT INTO users VALUES('{}','{}',{})"
+                      .format(email, fname.lower() + '@' + str(123), 22))
         except Exception as e:
-            print(type(e).__name__, ": ", e)
-        return False
+            print("error",e)
+
 
     def update_employee(self):
         """
@@ -141,79 +111,14 @@ class Admin:
                 new_email = input("Email: ").lower() or member[3]
                 phone = input("Phone no.: ") or member[4]
 
-                if self.update_member_validation(fname, lname, email, new_email, phone, member[0]):
-                    return True
+                c = self.conn.cursor()
+                c.execute("SELECT count(*) from employees WHERE lower(email)='{}'".format(email))
 
         except Exception as e:
             print(type(e).__name__, ": ", e)
 
         return False
 
-    def update_member_validation(self, fname, lname, old_email, email, phone, member_id):
-        """
-        Check whether the email already exists in database or not.
-        :param fname: first name of member
-        :param lname: last name of member
-        :param old_email: previous email stored in database
-        :param email: email of member
-        :param phone: phone no. of member
-        :param member_id: id of member
-        :return: True/False
-        """
-        try:
-            c = self.conn.cursor()
-            if re.search(self.regex, email):
-                c.execute("SELECT count(*) from employees WHERE lower(email)='{}'".format(email))
-                if c.fetchone()[0] < 1:
-                    return self.update_member_action(fname, lname, old_email, email, phone, member_id)
-                else:
-                    c.execute("SELECT count(*) from employees WHERE lower(email)='{}' and ID={}"
-                              .format(email, member_id))
-                    if c.fetchone()[0] > 0:
-                        return self.update_member_action(fname, lname, old_email, email, phone, member_id)
-                    else:
-                        print("\n'{}' already exists.\nTry again with new Email".format(email))
-            else:
-                print("\nInvalid email.")
-        except Exception as e:
-            print("\n", type(e), ": ", e)
-
-        return False
-
-    def update_member_action(self, fname, lname, old_email, email, phone, member_id):
-        """
-        Update the member details w.r.t. member id
-        :param fname: first name of member
-        :param lname: last name of member
-        :param old_email: previous email stored in database
-        :param email: email of member
-        :param phone: phone no. of member
-        :param member_id: id of member
-        :return: True/False
-        """
-        if re.search("^[a-zA-Z]+$", fname):
-            if re.search("^[a-zA-Z]+$", lname):
-                if len(phone) == 10:
-                    try:
-                        c = self.conn.cursor()
-                        c.execute("DELETE from users WHERE EMAIL='{}'".format(old_email))
-                        c.execute("UPDATE employees SET FNAME='{}',LNAME='{}',EMAIL='{}',PHONE='{}' WHERE ID={}"
-                                  .format(fname, lname, email, phone, member_id))
-                        c.execute("INSERT INTO users VALUES('{}','{}',{})"
-                                  .format(email, fname.lower() + '@' + str(123), 22))
-                        self.conn.commit()
-                        print("\nRecord Updated.")
-                        return True
-                    except Exception as e:
-                        print("\n", type(e), ": ", e)
-                else:
-                    print("\nInvalid Phone No.")
-            else:
-                print("\n Only letters are allowed in last name.")
-        else:
-            print("\n Only letters are allowed in first name.")
-
-        return False
 
     def delete_employee(self):
         """
@@ -228,7 +133,7 @@ class Admin:
             c.execute("SELECT * from employees WHERE lower(email)='{}'".format(email))
             if c.fetchone() is not None:
                 ch = input("Want to delete '{}' (y/n): ".format(email))
-                if ch == 'y' or ch == 'Y':
+                if ch.lower() == 'y' or ch.upper() == 'Y':
                     c.execute("DELETE from users WHERE lower(email)='{}'".format(email))
                     c.execute("DELETE from employees WHERE lower(email)='{}'".format(email))
                     self.conn.commit()
@@ -300,10 +205,10 @@ class Admin:
         :return: True/False
         """
         print("\nAdd Cab\n-------")
-        cab_no = input("Cab no.: ").upper()
-        rider_name = input("Rider Name: ")
-        rider_no = input("Rider No.: ")
-        capacity = int(input("Capacity: "))
+        cab_no = Validation.input_str_for_create(self, "Cab no.: ")
+        rider_name = Validation.input_str_for_create(self, "Rider Name: ")
+        rider_no = Validation.input_str_for_create(self, "Enter No: ")
+        capacity = Validation.input_int_for_create(self, "Capacity: ")
 
         cab_no = re.sub(' +', ' ', cab_no)
 
@@ -392,7 +297,7 @@ class Admin:
 
             if cab_id is not None:
                 ch = input("Want to delete '{}' (y/n): ".format(cab_num))
-                if ch == 'y' or ch == 'Y':
+                if ch.lower() == 'y' or ch.upper() == 'Y':
                     c.execute("DELETE from cabs WHERE cab_no='{}'".format(cab_num))
                     c.execute("DELETE from routes WHERE cab_id='{}'".format(cab_id[0]))
                     self.conn.commit()
