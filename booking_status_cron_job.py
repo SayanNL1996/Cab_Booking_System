@@ -1,6 +1,7 @@
 import mysql.connector as connector
 import schedule
 import time
+from run import sql_connection
 from datetime import datetime, timedelta
 
 
@@ -9,19 +10,17 @@ def update_booking_status():
     this method is used to update booking status for old rides.
     :return:
     """
-    mydb = connector.connect(
-        host='localhost',
-        user='root',
-        password='Qwerty@123',
-        database='cabs'
-    )
-
+    mydb = sql_connection()
     c = mydb.cursor()
     c.execute("SELECT * from bookings JOIN routes ON bookings.route_id=routes.id WHERE status=2;")
     result = c.fetchall()
-    print(result)
+    # print(result)
     if len(result) > 0:
         for row in result:
+            print('row[0]', row[0])
+            print('row[5]', row[5])
+            print('row[2]', row[2])
+            print('row[11]', row[11])
             t = datetime.now().strftime("%H:%M:%S")
             t = datetime.strptime(t, '%H:%M:%S').time()
             current_time = timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
