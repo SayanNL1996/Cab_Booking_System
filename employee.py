@@ -1,6 +1,7 @@
 """  File for all operations performed under normal employee."""
 
 from datetime import date, datetime, timedelta
+from validation import Validation
 
 
 class Employee:
@@ -42,10 +43,10 @@ class Employee:
         :return: True/False
         """
         print("\nNew Booking\n-----------")
-        source = input("Source: ").lower()
-        destination = input("Destination: ").lower()
+        source = Validation.input_str_for_create(self, "Source: ").lower()
+        destination = Validation.input_str_for_create(self, "Destination: ").lower()
         timing = input("Timing (hh:mm): ")
-        occupancy = int(input("Occupancy: "))
+        occupancy = Validation.input_int_for_create("Occupancy: ")
 
         try:
             c = self.conn.cursor()
@@ -63,6 +64,8 @@ class Employee:
 
                 if self.validate_route_id(route_id):
                     return self.new_booking_action(route_id, occupancy, email)
+                else:
+                    raise Exception
             else:
                 print("\nNo cabs found.")
 
@@ -98,7 +101,7 @@ class Employee:
          :return: True/False
                """
         ch = input("Confirm Booking (y/n): ")
-        if ch == 'y' or ch == 'Y':
+        if ch.lower() == 'y' or ch.upper() == 'Y':
             try:
                 c = self.conn.cursor()
                 c.execute("SELECT id FROM employees WHERE lower(email)='{}'".format(email))
