@@ -101,7 +101,7 @@ class Employee:
          :return: True/False
                """
         ch = input("Confirm Booking (y/n): ")
-        if ch.lower() == 'y' or ch.upper() == 'Y':
+        if ch.lower() == 'y':
             try:
                 c = self.conn.cursor()
                 c.execute("SELECT id FROM employees WHERE lower(email)='{}'".format(email))
@@ -207,7 +207,7 @@ class Employee:
         :param booking_id: booking id of the ride
         :return: True/False"""
         ch = input("Want to cancel booking (y/n): ")
-        if ch == 'y' or ch == 'Y':
+        if ch == 'y':
             try:
                 c = self.conn.cursor()
                 c.execute("select r.TIMING from bookings as b inner join routes r on b.ROUTE_ID = r.id  where b.id={}".format(booking_id))
