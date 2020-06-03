@@ -44,9 +44,10 @@ class Validation:
         return a
 
     def validate_empty_string(self, input_str):
-        if input_str is '':
-            return False
-        return True
+        res = bool(re.match('^$', input_str))
+        if res:
+            return True
+        return False
 
     def validate_str(self, input_str):
         for i in input_str:
