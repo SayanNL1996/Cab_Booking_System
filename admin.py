@@ -133,7 +133,7 @@ class Admin:
             c.execute("SELECT * from employees WHERE lower(email)='{}'".format(email))
             if c.fetchone() is not None:
                 ch = input("Want to delete '{}' (y/n): ".format(email))
-                if ch.lower() == 'y' or ch.upper() == 'Y':
+                if ch.lower() == 'y':
                     c.execute("DELETE from users WHERE lower(email)='{}'".format(email))
                     c.execute("DELETE from employees WHERE lower(email)='{}'".format(email))
                     self.conn.commit()
@@ -297,7 +297,7 @@ class Admin:
 
             if cab_id is not None:
                 ch = input("Want to delete '{}' (y/n): ".format(cab_num))
-                if ch.lower() == 'y' or ch.upper() == 'Y':
+                if ch.lower() == 'y':
                     c.execute("DELETE from cabs WHERE cab_no='{}'".format(cab_num))
                     c.execute("DELETE from routes WHERE cab_id='{}'".format(cab_id[0]))
                     self.conn.commit()
